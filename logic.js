@@ -27,24 +27,11 @@ function submitBtnClicked() {
     firstTrain = $("#firstTrain").val().trim();
     frequency = $("#freq").val().trim();
 
-    var firstTimeConverted = moment(firstTrain, "HH:mm").subtract(1, "years");
-
-    var diffTime = moment().diff(moment(firstTimeConverted), "minutes");
-
-    var tRemainder = diffTime % frequency;
-
-    var minutesTillTrain = frequency - tRemainder;
-
-    var nextTrain = moment().add(minutesTillTrain, "minutes");
-
-
     var trainData = {
         trainName: trainName,
         destination: destination,
         firstTrain: firstTrain,
-        frequency: frequency,
-        nextTrain: moment(nextTrain).format("hh:mm"),
-        minutesAway: minutesTillTrain
+        frequency: frequency
     }
 
     database.ref().push(trainData);
@@ -53,7 +40,23 @@ function submitBtnClicked() {
 database.ref().on(
     "child_added",
     function (childSnapshot) {
+
+        
         var snapshotVal = childSnapshot.val();
+        
+        var childFrequency = snapshotVal.frequency;
+        
+        var childFirstTrain = snapshotVal.firstTrain;
+
+        var firstTimeConverted = moment(childFirstTrain, "HH:mm").subtract(1, "years");
+
+        var diffTime = moment().diff(moment(firstTimeConverted), "minutes");
+
+        var tRemainder = diffTime % childFrequency;
+
+        var minutesTillTrain = childFrequency - tRemainder;
+
+        var nextTrain = moment().add(minutesTillTrain, "minutes");
 
         var timesheetBody = document.getElementById("timesheetBody");
         var row = document.createElement("div")
@@ -75,11 +78,11 @@ database.ref().on(
 
         var nextTrainCol = document.createElement("div");
         nextTrainCol.className = "col";
-        nextTrainCol.innerHTML = snapshotVal.nextTrain;
+        nextTrainCol.innerHTML = nextTrain;
 
         var minutesAwayCol = document.createElement("div");
         minutesAwayCol.classList.add("col")
-        minutesAwayCol.innerHTML = snapshotVal.minutesAway;
+        minutesAwayCol.innerHTML = minutesTillTrain;
 
         row.appendChild(trainNameCol);
         row.appendChild(destinationCol);
